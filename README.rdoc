@@ -1,0 +1,44 @@
+== Alias test
+
+We have two very simple models in this application:
+
+1. Person
+2. Role
+
+Whenever you manipulate a Person, you also assign that person a Role.
+
+== The problem
+
+Suppose we wanted to change the attribute name of a Person's role to responsibility.
+Suppose also that there is insufficient test coverage to find all the places where that attribute is used.
+So that we don't break existing pages, we want a way to create a Person#responsibility attribute such that if
+one of either Person#role or Person#responsibility is manipulated, the other will reflect the changes immediately.
+
+== The attempted solution
+
+Person belongs_to a Role. Person therefore has a database column role_id.
+
+Our naive solution will be to write two alias_method definitions for the getter and setter of Person#role.
+
+== The catch
+
+There is no Person#responsibility_id.
+
+== Adding formtastic to the mix
+
+Formtastic does some interesting stuff behind-the-scenes to figure out that
+
+    <%= f.input :role %>
+
+equates to
+
+    <%= f.label :role_id %>
+    <%= f.collection_select :role_id, :id, :title %>
+
+This works fine in the PersonController#new view, because we're referencing :role.
+
+It doesn't work on the PersonController#edit view. For some reason, formtastic guesses that :responsibility is a String value.
+
+Thus, when we attempt to update the Person, we get the error:
+
+    Role(#2174572860) expected, got String(#2148412400)
